@@ -46,4 +46,6 @@ app.MapDelete("/api/books/{id}", async (BookContext db, int id) =>
     return Results.NoContent();
 });
 
+app.MapGet("/api/cds", async (BookContext db) => await db.CDs.ToListAsync());
+
 app.Run();
