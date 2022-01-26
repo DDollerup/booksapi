@@ -23,9 +23,13 @@ app.MapGet("/api/books/{id}", async (BookContext db, int id) => await db.Books.F
 
 app.MapPost("/api/books", async (BookContext db, Book book) =>
 {
+    if (book.CoverImage != null && book.CoverImage.Length > 0)
+    {
+        book.CoverImage = Tools.ConvertBase64ToFile(book.CoverImage, builder.Environment.ContentRootPath + @"\wwwroot\");
+    }
     await db.Books.AddAsync(book);
     await db.SaveChangesAsync();
-    return Results.Ok();
+    return Results.Ok(book);
 });
 
 app.MapPut("/api/books/{id}", async (BookContext db, int id, Book book) =>
