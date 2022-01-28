@@ -34,6 +34,21 @@ app.MapPost("/api/books", async (BookContext db, Book book) =>
 
 app.MapPut("/api/books/{id}", async (BookContext db, int id, Book book) =>
 {
+
+    if (book.CoverImage != null && Tools.IsBase64String(book.CoverImage))
+    {
+        var oldBook = await db.Books.AsNoTracking().SingleOrDefaultAsync(e => e.Id == id);
+        if (oldBook != null && oldBook.CoverImage != null)
+        {
+            Tools.DeleteFile(builder.Environment.ContentRootPath + @"\wwwroot\", oldBook.CoverImage); 
+        }
+
+        if (book.CoverImage != null && book.CoverImage.Length > 0)
+        {
+            book.CoverImage = Tools.ConvertBase64ToFile(book.CoverImage, builder.Environment.ContentRootPath + @"\wwwroot\");
+        }
+    }
+
     if (id != book.Id) return Results.BadRequest();
     db.Books.Update(book);
     await db.SaveChangesAsync();
@@ -44,6 +59,11 @@ app.MapDelete("/api/books/{id}", async (BookContext db, int id) =>
 {
     var book = await db.Books.FindAsync(id);
     if (book == null) return Results.NotFound();
+
+    if (book.CoverImage != null)
+    {
+        Tools.DeleteFile(builder.Environment.ContentRootPath + @"\wwwroot\", book.CoverImage);
+    }
 
     db.Books.Remove(book);
     await db.SaveChangesAsync();
